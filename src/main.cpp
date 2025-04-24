@@ -28,14 +28,12 @@ std::vector<point4> vertices = {
 };
 
 // RGBA olors
-std::vector<color4> vertex_colors= {
-    color4(0.0, 0.0, 0.0, 1.0),  // black
+std::vector<color4> face_colors = {  
     color4(1.0, 0.0, 0.0, 1.0),  // red
     color4(1.0, 1.0, 0.0, 1.0),  // yellow
     color4(0.0, 1.0, 0.0, 1.0),  // green
     color4(0.0, 0.0, 1.0, 1.0),  // blue
     color4(1.0, 0.0, 1.0, 1.0),  // magenta
-    color4(1.0, 1.0, 1.0, 1.0),  // white
     color4(0.0, 1.0, 1.0, 1.0)   // cyan
 };
 
@@ -61,9 +59,10 @@ void init()
    
     glUseProgram(program);
 
-    Cube cube(1, vertices, vertex_colors); // create the cube in terms of 6 faces each of which is made of two triangles
+    Cube cube(1, vertices, face_colors); // create the cube in terms of 6 faces each of which is made of two triangles
     colors = cube.faceColors;
     points = cube.points;
+     
     // Create a vertex array object
     GLuint vao;
     glGenVertexArrays(1, &vao);
@@ -115,10 +114,7 @@ void display(void)
 
     //  Generate the model-view matrix
     const vec3 displacement(0.0, 0.0, 0.0);
-    mat4  model_view = (Translate(displacement) * Scale(1.0, 1.0, 1.0) *
-        RotateX(Theta[Xaxis]) *
-        RotateY(Theta[Yaxis]) *
-        RotateZ(Theta[Zaxis]));  // Scale(), Translate(), RotateX(), RotateY(), RotateZ(): user-defined functions in mat.h
+    mat4  model_view = (Translate(displacement) * Scale(1.0, 1.0, 1.0));  // Scale(), Translate(), RotateX(), RotateY(), RotateZ(): user-defined functions in mat.h
 
     glUniformMatrix4fv(ModelView, 1, GL_TRUE, model_view);
     glDrawArrays(GL_TRIANGLES, 0, NumVertices);
