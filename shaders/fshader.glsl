@@ -1,5 +1,5 @@
 #version 410
-in vec4 fColor; // Köşe shader'ından gelen renk
+in vec4 fColor;
 
 out vec4 color;
 
