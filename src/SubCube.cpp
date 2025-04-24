@@ -1,6 +1,6 @@
-#include "Cube.h"
+#include "SubCube.h"
 
-Cube::Cube(int id, std::vector<vec4>& vertices, std::vector<vec4>& faceColors)
+SubCube::SubCube(int id, std::vector<vec4>& vertices, std::vector<vec4>& faceColors)
 {
     this->id = id;
     this->vertices = vertices;
@@ -18,7 +18,7 @@ Cube::Cube(int id, std::vector<vec4>& vertices, std::vector<vec4>& faceColors)
 
 }
 
-void Cube::quad(int a, int b, int c, int d, vec4& color)
+void SubCube::quad(int a, int b, int c, int d, vec4& color)
 {
     // First triangle
     faceColors.push_back(color);

@@ -3,7 +3,7 @@
 //
 
 #include "Angel.h"
-#include "Cube.h"
+#include "SubCube.h"
 
 typedef vec4  color4;
 typedef vec4  point4;
@@ -59,7 +59,7 @@ void init()
    
     glUseProgram(program);
 
-    Cube cube(1, vertices, face_colors); // create the cube in terms of 6 faces each of which is made of two triangles
+    SubCube cube(1, vertices, face_colors); // create the cube in terms of 6 faces each of which is made of two triangles
     colors = cube.faceColors;
     points = cube.points;
      
