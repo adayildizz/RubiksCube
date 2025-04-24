@@ -18,14 +18,14 @@ include_directories(
 add_subdirectory(external/glfw)
 
 # === Add GLEW (build glew.c manually as static lib) ===
-add_library(glew STATIC external/glew/src/glew.c)
+add_library(glew STATIC external/glew/src/glew.c "src/Cube.cpp" "include/Cube.h")
 target_include_directories(glew PUBLIC external/glew/include)
 
 # === Define GLEW_STATIC macro ===
 add_definitions(-DGLEW_STATIC)
 
 # === Main executable ===
-add_executable(OpenGLProject ${SOURCES})
+add_executable(OpenGLProject ${SOURCES} "src/Cube.cpp" "include/Cube.h")
 
 # === Link dependencies ===
 if (WIN32)

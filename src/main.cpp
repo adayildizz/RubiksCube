@@ -3,21 +3,20 @@
 //
 
 #include "Angel.h"
+#include "Cube.h"
 
 typedef vec4  color4;
 typedef vec4  point4;
 
-const int NumVertices = 36; //(6 faces)(2 triangles/face)(3 vertices/triangle)
-
-point4 points[NumVertices];
-color4 colors[NumVertices];
+std::vector<point4> points;
+std::vector<color4> colors;
 
 #include <filesystem>
-
+const int NumVertices = 36; 
 
 
 // Vertices of a unit cube centered at origin, sides aligned with axes
-point4 vertices[8] = {
+std::vector<point4> vertices = {
     point4(-0.5, -0.5,  0.5, 1.0),
     point4(-0.5,  0.5,  0.5, 1.0),
     point4(0.5,  0.5,  0.5, 1.0),
@@ -29,7 +28,7 @@ point4 vertices[8] = {
 };
 
 // RGBA olors
-color4 vertex_colors[8] = {
+std::vector<color4> vertex_colors= {
     color4(0.0, 0.0, 0.0, 1.0),  // black
     color4(1.0, 0.0, 0.0, 1.0),  // red
     color4(1.0, 1.0, 0.0, 1.0),  // yellow
@@ -50,37 +49,7 @@ GLuint  ModelView, Projection;
 
 //----------------------------------------------------------------------------
 
-// quad generates two triangles for each face and assigns colors to the vertices
-int Index = 0;
 
-void quad(int a, int b, int c, int d)
-{
-    colors[Index] = vertex_colors[a]; points[Index] = vertices[a]; Index++;
-    colors[Index] = vertex_colors[b]; points[Index] = vertices[b]; Index++;
-    colors[Index] = vertex_colors[c]; points[Index] = vertices[c]; Index++;
-    colors[Index] = vertex_colors[a]; points[Index] = vertices[a]; Index++;
-    colors[Index] = vertex_colors[c]; points[Index] = vertices[c]; Index++;
-    colors[Index] = vertex_colors[d]; points[Index] = vertices[d]; Index++;
-}
-
-//----------------------------------------------------------------------------
-
-// generate 12 triangles: 36 vertices and 36 colors
-
-void colorcube()
-{
-    quad(1, 0, 3, 2);
-    quad(2, 3, 7, 6);
-    quad(3, 0, 4, 7);
-    quad(6, 5, 1, 2);
-    quad(4, 5, 6, 7);
-    quad(5, 4, 0, 1);
-}
-
-//---------------------------------------------------------------------
-//
-// init
-//
 
 void init()
 {
@@ -92,8 +61,9 @@ void init()
    
     glUseProgram(program);
 
-    colorcube(); // create the cube in terms of 6 faces each of which is made of two triangles
-
+    Cube cube(1, vertices, vertex_colors); // create the cube in terms of 6 faces each of which is made of two triangles
+    colors = cube.faceColors;
+    points = cube.points;
     // Create a vertex array object
     GLuint vao;
     glGenVertexArrays(1, &vao);
@@ -102,20 +72,25 @@ void init()
     // Create and initialize a buffer object
     GLuint buffer;
     glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(points) + sizeof(colors), NULL, GL_STATIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(points), points);
-    glBufferSubData(GL_ARRAY_BUFFER, sizeof(points), sizeof(colors), colors);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);  // <-- Add this line
+    
+    // Calculate the correct byte sizes
+    GLsizeiptr pointsSize = points.size() * sizeof(vec4);
+    GLsizeiptr colorsSize = colors.size() * sizeof(vec4);
 
-    // set up vertex arrays
+    // Buffer setup
+    glBufferData(GL_ARRAY_BUFFER, pointsSize + colorsSize, NULL, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, pointsSize, points.data());
+    glBufferSubData(GL_ARRAY_BUFFER, pointsSize, colorsSize, colors.data());
+
+    // Vertex attribute pointers
     GLuint vPosition = glGetAttribLocation(program, "vPosition");
     glEnableVertexAttribArray(vPosition);
     glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 
     GLuint vColor = glGetAttribLocation(program, "vColor");
     glEnableVertexAttribArray(vColor);
-    glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)));
-
+    glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(pointsSize));  // Correct offset
     // Retrieve transformation uniform variable locations
     ModelView = glGetUniformLocation(program, "ModelView");
     Projection = glGetUniformLocation(program, "Projection");
