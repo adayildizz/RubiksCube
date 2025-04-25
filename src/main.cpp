@@ -3,10 +3,7 @@
 //
 
 #include "Angel.h"
-#include "SubCube.h"
-
-typedef vec4  color4;
-typedef vec4  point4;
+#include "RubiksCube.h"
 
 std::vector<point4> points;
 std::vector<color4> colors;
@@ -15,27 +12,6 @@ std::vector<color4> colors;
 const int NumVertices = 36; 
 
 
-// Vertices of a unit cube centered at origin, sides aligned with axes
-std::vector<point4> vertices = {
-    point4(-0.5, -0.5,  0.5, 1.0),
-    point4(-0.5,  0.5,  0.5, 1.0),
-    point4(0.5,  0.5,  0.5, 1.0),
-    point4(0.5, -0.5,  0.5, 1.0),
-    point4(-0.5, -0.5, -0.5, 1.0),
-    point4(-0.5,  0.5, -0.5, 1.0),
-    point4(0.5,  0.5, -0.5, 1.0),
-    point4(0.5, -0.5, -0.5, 1.0)
-};
-
-// RGBA olors
-std::vector<color4> face_colors = {  
-    color4(1.0, 0.0, 0.0, 1.0),  // red
-    color4(1.0, 1.0, 0.0, 1.0),  // yellow
-    color4(0.0, 1.0, 0.0, 1.0),  // green
-    color4(0.0, 0.0, 1.0, 1.0),  // blue
-    color4(1.0, 0.0, 1.0, 1.0),  // magenta
-    color4(0.0, 1.0, 1.0, 1.0)   // cyan
-};
 
 // Array of rotation angles (in degrees) for each coordinate axis
 enum { Xaxis = 0, Yaxis = 1, Zaxis = 2, NumAxes = 3 };
@@ -59,9 +35,9 @@ void init()
    
     glUseProgram(program);
 
-    SubCube cube(1, vertices, face_colors); // create the cube in terms of 6 faces each of which is made of two triangles
-    colors = cube.faceColors;
+    RubiksCube cube;
     points = cube.points;
+    colors = cube.colors;
      
     // Create a vertex array object
     GLuint vao;
