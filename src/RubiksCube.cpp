@@ -3,20 +3,7 @@
 #include <vector>
 
 
-
-// Vertices of a unit cube centered at origin, sides aligned with axes
-std::vector<point4> vertices = {
-    point4(-0.5, -0.5,  0.5, 1.0),
-    point4(-0.5,  0.5,  0.5, 1.0),
-    point4(0.5,  0.5,  0.5, 1.0),
-    point4(0.5, -0.5,  0.5, 1.0),
-    point4(-0.5, -0.5, -0.5, 1.0),
-    point4(-0.5,  0.5, -0.5, 1.0),
-    point4(0.5,  0.5, -0.5, 1.0),
-    point4(0.5, -0.5, -0.5, 1.0)
-};
-
-// RGBA olors
+// RGBA colors
 std::vector<color4> face_colors = {
     color4(1.0, 0.0, 0.0, 1.0),  // red
     color4(1.0, 1.0, 0.0, 1.0),  // yellow
@@ -33,15 +20,37 @@ RubiksCube::RubiksCube() {
 void RubiksCube::initialize()
 {
     // create 27 subcube, with correct color values
-    for (int i = 0; i < 1; i++)
-    {
-        SubCube cube(i, vertices, face_colors); // create the cube in terms of 6 faces each of which is made of two triangles
-        colors = cube.faceColors;
-        points = cube.points;
+    
+    
 
+    // generate center coordinates
+    
+    for (int x = -1; x < 2; x++) {
+        for (int y = -1; y < 2; y++) {
+            for (int z = -1; z < 2; z++) {
+
+                vec4 center((float)x, (float)y, (float)z, 1.0f);
+                SubCube cube(x+y+z+4, center, face_colors);
+                subCubes.push_back(cube);
+                points.insert(points.end(), cube.points.begin(), cube.points.end());
+                colors.insert(colors.end(), cube.faceColors.begin(), cube.faceColors.end());
+               
+            }
+        }
     }
+    for (vec4 i : points) {
+        std::cout << "points" << i << std::endl;
+    }
+    
+    
 
-    // apply translation on the sub cubes };
+
+
+    
+
+    
+
+    
 
     
 }
@@ -51,3 +60,9 @@ void RubiksCube::rotate(float rotationAngle)
 {
 
 }
+
+
+//void RubiksCube::generateFaceColors()
+//{
+//
+//}

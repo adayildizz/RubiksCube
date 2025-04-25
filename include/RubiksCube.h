@@ -12,11 +12,12 @@ class RubiksCube {
 public:
     std::vector<vec4> points;
     std::vector<vec4> colors;
-    std::vector<SubCube> subCubes; // Store SubCubes
+    std::vector<SubCube> subCubes; 
 
     RubiksCube();
     void initialize();
     void rotate(float rotationAngle);
+    std::vector<color4> generateFaceColors();
 };
 
 #endif

@@ -9,7 +9,7 @@ std::vector<point4> points;
 std::vector<color4> colors;
 
 #include <filesystem>
-const int NumVertices = 36; 
+
 
 
 
@@ -31,54 +31,50 @@ void init()
     std::filesystem::path shaderDir = std::filesystem::path(__FILE__).parent_path() / "../shaders";
     GLuint program = InitShader((shaderDir / "vshader.glsl").string().c_str(),
         (shaderDir / "fshader.glsl").string().c_str());
-
-   
     glUseProgram(program);
 
+    // Create the Rubik's Cube
     RubiksCube cube;
-    points = cube.points;
-    colors = cube.colors;
-     
+
     // Create a vertex array object
     GLuint vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    // Create and initialize a buffer object
+    // Create and initialize buffers
     GLuint buffer;
     glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);  // <-- Add this line
-    
-    // Calculate the correct byte sizes
-    GLsizeiptr pointsSize = points.size() * sizeof(vec4);
-    GLsizeiptr colorsSize = colors.size() * sizeof(vec4);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
 
-    // Buffer setup
+    // Calculate buffer sizes
+    GLsizeiptr pointsSize = cube.points.size() * sizeof(vec4);
+    GLsizeiptr colorsSize = cube.colors.size() * sizeof(vec4);
+
+    // Allocate and fill buffer
     glBufferData(GL_ARRAY_BUFFER, pointsSize + colorsSize, NULL, GL_STATIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, pointsSize, points.data());
-    glBufferSubData(GL_ARRAY_BUFFER, pointsSize, colorsSize, colors.data());
+    glBufferSubData(GL_ARRAY_BUFFER, 0, pointsSize, cube.points.data());
+    glBufferSubData(GL_ARRAY_BUFFER, pointsSize, colorsSize, cube.colors.data());
 
-    // Vertex attribute pointers
+    // Set up vertex attributes
     GLuint vPosition = glGetAttribLocation(program, "vPosition");
     glEnableVertexAttribArray(vPosition);
     glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 
     GLuint vColor = glGetAttribLocation(program, "vColor");
     glEnableVertexAttribArray(vColor);
-    glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(pointsSize));  // Correct offset
-    // Retrieve transformation uniform variable locations
+    glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(pointsSize));
+
+    // Get uniform locations
     ModelView = glGetUniformLocation(program, "ModelView");
     Projection = glGetUniformLocation(program, "Projection");
 
-    // Set projection matrix
-    mat4  projection;
-    projection = Ortho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0); // Ortho(): user-defined function in mat.h
+    // Set projection matrix - make it wider to see the whole cube
+    mat4 projection = Ortho(-4.0, 4.0, -4.0, 4.0, -4.0, 4.0);
     glUniformMatrix4fv(Projection, 1, GL_TRUE, projection);
 
     glEnable(GL_DEPTH_TEST);
-    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glClearColor(0.1, 0.1, 0.1, 1.0); // Dark background for better contrast
 }
-
 //---------------------------------------------------------------------
 //
 // display
@@ -88,12 +84,17 @@ void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //  Generate the model-view matrix
-    const vec3 displacement(0.0, 0.0, 0.0);
-    mat4  model_view = (Translate(displacement) * Scale(1.0, 1.0, 1.0));  // Scale(), Translate(), RotateX(), RotateY(), RotateZ(): user-defined functions in mat.h
+    // Generate the model-view matrix
+    mat4 model_view = Translate(0.0, 0.0, 0.0) *
+        RotateX(Theta[Xaxis]) *
+        RotateY(Theta[Yaxis]) *
+        RotateZ(Theta[Zaxis]);
 
     glUniformMatrix4fv(ModelView, 1, GL_TRUE, model_view);
-    glDrawArrays(GL_TRIANGLES, 0, NumVertices);
+
+    // Draw ALL cubes (36 vertices per cube × 27 cubes)
+    glDrawArrays(GL_TRIANGLES, 0, 36 * 27);
+
     glFlush();
 }
 

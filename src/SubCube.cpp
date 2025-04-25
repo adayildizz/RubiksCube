@@ -1,13 +1,16 @@
 #include "SubCube.h"
+#include "RubiksCube.h"
 
-SubCube::SubCube(int id, std::vector<vec4>& vertices, std::vector<vec4>& faceColors)
+SubCube::SubCube(int id, vec4 centerCoordinate, std::vector<vec4>& faceColors)
 {
     this->id = id;
-    this->vertices = vertices;
     this->faceColors = faceColors;
+    this->center = centerCoordinate;
 
-    points.reserve(36);      
+    points.reserve(36);    
+    modelMatrix = mat4(1.0f);
     
+    initializeVertices();
 
     quad(1, 0, 3, 2, faceColors[0]);
     quad(2, 3, 7, 6, faceColors[1]);
@@ -41,3 +44,23 @@ void SubCube::quad(int a, int b, int c, int d, vec4& color)
     points.push_back(vertices[d]);
 }
 
+void SubCube::rotate(mat4 rotationMatrix) {
+    modelMatrix = rotationMatrix * modelMatrix;
+}
+
+void SubCube::initializeVertices()
+{
+    float half = edgeLength / 2;
+    vertices.clear();
+    
+    vertices.push_back(point4(center.x - half, center.y - half, center.z + half, 1.0)); 
+    vertices.push_back(point4(center.x - half, center.y + half, center.z + half, 1.0)); 
+    vertices.push_back(point4(center.x + half, center.y + half, center.z + half, 1.0)); 
+    vertices.push_back(point4(center.x + half, center.y - half, center.z + half, 1.0)); 
+    vertices.push_back(point4(center.x - half, center.y - half, center.z - half, 1.0)); 
+    vertices.push_back(point4(center.x - half, center.y + half, center.z - half, 1.0)); 
+    vertices.push_back(point4(center.x + half, center.y + half, center.z - half, 1.0)); 
+    vertices.push_back(point4(center.x + half, center.y - half, center.z - half, 1.0)); 
+
+    
+}

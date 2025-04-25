@@ -9,13 +9,17 @@ class SubCube
 {
 public:
     int id;
+    vec4 center;
+    float edgeLength = 1.0f;
     std::vector<vec4> vertices;
     std::vector<vec4> points;
     std::vector<vec4> faceColors;
+    mat4 modelMatrix;
 
-    SubCube(int id, std::vector<vec4>& vertices, std::vector<vec4>& faceColors);
+    SubCube(int id, vec4 centerCoordinate, std::vector<vec4>& faceColors);
     void quad(int a, int b, int c, int d, vec4& color);
-    
+    void rotate(mat4 rotationMatrix);
+    void initializeVertices();
     
     
 };
