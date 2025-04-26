@@ -12,7 +12,9 @@ std::vector<color4> colors;
 
 mat4 model_view;
 bool isRotating = false;
-
+float lastX = 0.0f;
+float lastY = 0.0f;
+float rotationSensitivity = 1.0f;
 
 // Array of rotation angles (in degrees) for each coordinate axis
 enum { Xaxis = 0, Yaxis = 1, Zaxis = 2, NumAxes = 3 };
@@ -87,19 +89,11 @@ void display(void)
 
     // Generate the model-view matrix
     model_view = Translate(0.0, 0.0, 0.0);
-    if (isRotating)
-    {
-        Theta[Axis] += 0.1;
-
-        if (Theta[Axis] > 360.0) {
-            Theta[Axis] -= 360.0;
-        }
-        model_view = model_view *
-            RotateX(Theta[Xaxis]) *
-            RotateY(Theta[Yaxis]) *
-            RotateZ(Theta[Zaxis]);
-    }
-
+  
+    model_view = model_view *
+        RotateX(Theta[Xaxis]) *
+        RotateY(Theta[Yaxis]) *
+        RotateZ(Theta[Zaxis]);
 
     glUniformMatrix4fv(ModelView, 1, GL_TRUE, model_view);
 
@@ -109,13 +103,38 @@ void display(void)
     glFlush();
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    switch (key) {
-    case GLFW_KEY_ESCAPE: case GLFW_KEY_Q:
-        exit(EXIT_SUCCESS);
-        break;
+    if (isRotating)
+    {
+        // Calculate mouse movement delta
+        float dx = (xpos - lastX);
+        float dy = (ypos - lastY);
+
+        // Apply rotation to both axes simultaneously
+        Theta[Yaxis] += rotationSensitivity * dx; 
+        Theta[Xaxis] += rotationSensitivity * dy;  
+
+        
+
+       
+        if (Theta[Yaxis] > 360.0) {
+            Theta[Yaxis] -= 360.0;
+        }
+        if (Theta[Zaxis] > 360.0) {
+            Theta[Zaxis] -= 360.0;
+        }
+        if (Theta[Xaxis] > 360.0) {
+            Theta[Xaxis] -= 360.0;
+        }
     }
+
+    // Update last position
+    lastX = xpos;
+    lastY = ypos;
+    
+
+
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -168,7 +187,7 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    glfwSetKeyCallback(window, key_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
 
     init();
