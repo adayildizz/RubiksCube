@@ -24,43 +24,45 @@ SubCube::SubCube(int id, vec4 centerCoordinate, std::vector<vec4>& faceColors)
 void SubCube::quad(int a, int b, int c, int d, vec4& color)
 {
     // First triangle
-    faceColors.push_back(color);
     points.push_back(vertices[a]);
+    colors.push_back(color);
 
-    faceColors.push_back(color);
     points.push_back(vertices[b]);
+    colors.push_back(color);
 
-    faceColors.push_back(color);
     points.push_back(vertices[c]);
+    colors.push_back(color);
 
     // Second triangle
-    faceColors.push_back(color);
     points.push_back(vertices[a]);
+    colors.push_back(color);
 
-    faceColors.push_back(color);
     points.push_back(vertices[c]);
+    colors.push_back(color);
 
-    faceColors.push_back(color);
     points.push_back(vertices[d]);
+    colors.push_back(color);
 }
+
 
 void SubCube::rotate(mat4 rotationMatrix) {
     modelMatrix = rotationMatrix * modelMatrix;
 }
 
+
 void SubCube::initializeVertices()
 {
-    float half = edgeLength / 2;
-    vertices.clear();
-    
-    vertices.push_back(point4(center.x - half, center.y - half, center.z + half, 1.0)); 
-    vertices.push_back(point4(center.x - half, center.y + half, center.z + half, 1.0)); 
-    vertices.push_back(point4(center.x + half, center.y + half, center.z + half, 1.0)); 
-    vertices.push_back(point4(center.x + half, center.y - half, center.z + half, 1.0)); 
-    vertices.push_back(point4(center.x - half, center.y - half, center.z - half, 1.0)); 
-    vertices.push_back(point4(center.x - half, center.y + half, center.z - half, 1.0)); 
-    vertices.push_back(point4(center.x + half, center.y + half, center.z - half, 1.0)); 
-    vertices.push_back(point4(center.x + half, center.y - half, center.z - half, 1.0)); 
+    float scale = 0.95f; // Slightly shrink each subcube
+    float half = (edgeLength * scale) / 2;
 
-    
+    vertices.clear();
+
+    vertices.push_back(point4(center.x - half, center.y - half, center.z + half, 1.0));
+    vertices.push_back(point4(center.x - half, center.y + half, center.z + half, 1.0));
+    vertices.push_back(point4(center.x + half, center.y + half, center.z + half, 1.0));
+    vertices.push_back(point4(center.x + half, center.y - half, center.z + half, 1.0));
+    vertices.push_back(point4(center.x - half, center.y - half, center.z - half, 1.0));
+    vertices.push_back(point4(center.x - half, center.y + half, center.z - half, 1.0));
+    vertices.push_back(point4(center.x + half, center.y + half, center.z - half, 1.0));
+    vertices.push_back(point4(center.x + half, center.y - half, center.z - half, 1.0));
 }

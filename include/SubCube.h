@@ -14,6 +14,7 @@ public:
     std::vector<vec4> vertices;
     std::vector<vec4> points;
     std::vector<vec4> faceColors;
+    std::vector<vec4> colors;
     mat4 modelMatrix;
 
     SubCube(int id, vec4 centerCoordinate, std::vector<vec4>& faceColors);

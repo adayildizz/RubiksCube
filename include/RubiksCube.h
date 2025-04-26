@@ -17,7 +17,7 @@ public:
     RubiksCube();
     void initialize();
     void rotate(float rotationAngle);
-    std::vector<color4> generateFaceColors();
+    vec4 getColor(int axis, int direction);
 };
 
 #endif
