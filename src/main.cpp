@@ -4,6 +4,7 @@
 
 #include "Angel.h"
 #include "RubiksCube.h"
+#include "light.h"
 
 std::vector<point4> points;
 std::vector<color4> colors;
@@ -23,6 +24,13 @@ GLfloat  Theta[NumAxes] = { 0.0, 0.0, 0.0 };
 
 // Model-view and projection matrices uniform location
 GLuint  ModelView, Projection;
+
+//Light global variables
+Light mainLight;
+GLint ambientColorLoc;
+GLint ambientIntensityLoc;
+GLint lightDirectionLoc;
+GLint diffuseIntensityLoc;
 
 //----------------------------------------------------------------------------
 
@@ -80,21 +88,13 @@ void init()
     Projection = glGetUniformLocation(program, "Projection");
     glUniformMatrix4fv(Projection, 1, GL_TRUE, projection);
 
-    // Lighting uniforms
-    vec3 lightColor(1.0f, 1.0f, 1.0f);
-    float ambientStrength = 0.3f;
-    vec3 lightDirection(0.0f, 1.0f, 0.0f);
-    float diffuseIntensity = 0.7f;
+    //set up lighting
+    ambientColorLoc = glGetUniformLocation(program, "directionalLight.color");
+    ambientIntensityLoc = glGetUniformLocation(program, "directionalLight.ambientIntensity");
+    lightDirectionLoc = glGetUniformLocation(program, "directionalLight.direction");
+    diffuseIntensityLoc = glGetUniformLocation(program, "directionalLight.diffuseIntensity");
 
-    GLint ambientColorLoc = glGetUniformLocation(program, "directionalLight.color");
-    GLint ambientIntensityLoc = glGetUniformLocation(program, "directionalLight.ambientIntensity");
-    GLint lightDirectionLoc = glGetUniformLocation(program, "directionalLight.direction");
-    GLint diffuseIntensityLoc = glGetUniformLocation(program, "directionalLight.diffuseIntensity");
-
-    glUniform3fv(ambientColorLoc, 1, &lightColor[0]);
-    glUniform1f(ambientIntensityLoc, ambientStrength);
-    glUniform3fv(lightDirectionLoc, 1, &lightDirection[0]);
-    glUniform1f(diffuseIntensityLoc, diffuseIntensity);
+    mainLight.UseLight(ambientIntensityLoc, ambientColorLoc, diffuseIntensityLoc, lightDirectionLoc);
 
     // Get model-view uniform location
     ModelView = glGetUniformLocation(program, "ModelView");

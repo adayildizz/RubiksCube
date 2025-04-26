@@ -1,27 +1,25 @@
-#include <GL/glew.h>
-#include <glm/glm.hpp>
+#ifndef LIGHT_H
+#define LIGHT_H
+
+#include "Angel.h"
 
 class Light {
-
 public:
- Light();
+    Light();
 
- Light(GLfloat red, GLfloat green, GLfloat blue, GLfloat aIntensity,
- GLfloat xDirection, GLfloat yDirection, GLfloat zDirection, GLfloat dIntensity);
-    
- void UseLight(GLfloat ambientIntensityLocation, GLfloat ambientColorLocation,
- GLfloat diffuseIntensityLocation, GLfloat directionLocation);
-    
- ~Light();
-    
+    Light(GLfloat red, GLfloat green, GLfloat blue, GLfloat aIntensity,
+          GLfloat xDirection, GLfloat yDirection, GLfloat zDirection, GLfloat dIntensity);
+
+    void UseLight(GLfloat ambientIntensityLocation, GLfloat ambientColorLocation,
+                  GLfloat diffuseIntensityLocation, GLfloat directionLocation);
+
+    ~Light();
+
 private:
-    glm::vec3 color;
+    vec3 color;
     GLfloat ambientIntensity;
-    glm::vec3 direction;
+    vec3 direction;
     GLfloat diffuseIntensity;
-
 };
-    
 
-
-
+#endif // LIGHT_H
