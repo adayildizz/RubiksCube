@@ -54,13 +54,30 @@ void RubiksCube::rotate(float rotationAngle)
 
 
 vec4 RubiksCube::getColor(int axis, int direction) {
+    // Standard Rubik's cube colors:
+    // 0: Right (Red)
+    // 1: Left (Orange)
+    // 2: Up (White)
+    // 3: Down (Yellow)
+    // 4: Front (Green)
+    // 5: Back (Blue)
     static std::vector<vec4> colors = {
-        vec4(1, 0, 0, 1), // Red
-        vec4(0, 1, 0, 1), // Green
-        vec4(0, 0, 1, 1), // Blue
-        vec4(1, 1, 0, 1), // Yellow
-        vec4(1, 0, 1, 1), // Magenta
-        vec4(0, 1, 1, 1)  // Cyan
+        vec4(1, 0, 0, 1),    // Right - Red
+        vec4(1, 0.5f, 0, 1), // Left - Orange
+        vec4(1, 1, 1, 1),    // Up - White
+        vec4(1, 1, 0, 1),    // Down - Yellow
+        vec4(0, 1, 0, 1),    // Front - Green
+        vec4(0, 0, 1, 1)     // Back - Blue
     };
-    return colors[axis * 2 + (direction > 0 ? 0 : 1)];
+
+    // Map axis and direction to color index
+    if (axis == 0) { // X axis: Left/Right
+        return direction > 0 ? colors[0] : colors[1];
+    }
+    else if (axis == 1) { // Y axis: Up/Down
+        return direction > 0 ? colors[2] : colors[3];
+    }
+    else { // Z axis: Front/Back
+        return direction > 0 ? colors[4] : colors[5];
+    }
 }
