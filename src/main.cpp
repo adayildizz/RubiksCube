@@ -83,7 +83,7 @@ void init()
     // Lighting uniforms
     vec3 lightColor(1.0f, 1.0f, 1.0f);
     float ambientStrength = 0.3f;
-    vec3 lightDirection(0.0f, -1.0f, -1.0f);
+    vec3 lightDirection(0.0f, 1.0f, 0.0f);
     float diffuseIntensity = 0.7f;
 
     GLint ambientColorLoc = glGetUniformLocation(program, "directionalLight.color");

@@ -4,21 +4,35 @@
 SubCube::SubCube(int id, vec4 centerCoordinate, std::vector<vec4>& faceColors)
 {
     this->id = id;
-    this->faceColors = faceColors;
+
     this->center = centerCoordinate;
 
-    points.reserve(36);    
+    points.reserve(36);
+    colors.reserve(36);
     modelMatrix = mat4(1.0f);
-    
+
     initializeVertices();
 
-    quad(1, 0, 3, 2, faceColors[0]);
-    quad(2, 3, 7, 6, faceColors[1]);
-    quad(3, 0, 4, 7, faceColors[2]);
-    quad(6, 5, 1, 2, faceColors[3]);
-    quad(4, 5, 6, 7, faceColors[4]);
-    quad(5, 4, 0, 1, faceColors[5]);
+    // Front face (+Z): Vertices 0, 1, 2, 3 - Color index 5 (Green)
+    quad(0, 1, 2, 3, faceColors[5]);
 
+    // Back face (-Z): Vertices 4, 5, 6, 7 - Color index 4 (Blue)
+    quad(4, 5, 6, 7, faceColors[4]); // Original quad uses (a,b,c) and (a,c,d) triangles
+
+    // Left face (-X): Vertices 4, 0, 1, 5 - Color index 0 (Orange)
+    quad(4, 0, 1, 5, faceColors[0]);
+
+    // Right face (+X): Vertices 3, 7, 6, 2 - Color index 1 (Red)
+    quad(3, 7, 6, 2, faceColors[1]);
+
+    // Top face (+Y): Vertices 1, 5, 6, 2 - Color index 3 (White)
+    quad(1, 5, 6, 2, faceColors[3]);
+
+    // Bottom face (-Y): Vertices 4, 7, 3, 0 - Color index 2 (Yellow)
+    quad(4, 7, 3, 0, faceColors[2]);
+
+    // Assign the member faceColors if needed later (optional)
+    this->faceColors = faceColors;
 }
 
 void SubCube::quad(int a, int b, int c, int d, vec4& color)
