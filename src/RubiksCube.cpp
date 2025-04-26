@@ -22,7 +22,7 @@ void RubiksCube::initialize()
                 face_colors.clear();
 
                 // X axis: LEFT and RIGHT faces
-                face_colors.push_back((x == -1) ? getColor(0, -1) : vec4(0, 0, 0, 1));
+                face_colors.push_back((x == -1) ? getColor(0, -1) : vec4(0, 0, 0, 1)); // here
                 face_colors.push_back((x == 1) ? getColor(0, 1) : vec4(0, 0, 0, 1));
 
                 // Y axis: BOTTOM and TOP faces
@@ -31,7 +31,7 @@ void RubiksCube::initialize()
 
                 // Z axis: BACK and FRONT faces
                 face_colors.push_back((z == -1) ? getColor(2, -1) : vec4(0, 0, 0, 1));
-                face_colors.push_back((z == 1) ? getColor(2, 1) : vec4(0, 0, 0, 1));
+                face_colors.push_back((z == 1) ? getColor(2, 1) : vec4(0, 0, 0, 1)); // here 
 
                 SubCube cube(x + y + z + 4, center, face_colors);
                 subCubes.push_back(cube);
@@ -70,7 +70,6 @@ vec4 RubiksCube::getColor(int axis, int direction) {
         vec4(0, 0, 1, 1)     // Back - Blue
     };
 
-    // Map axis and direction to color index
     if (axis == 0) { // X axis: Left/Right
         return direction > 0 ? colors[0] : colors[1];
     }

@@ -10,7 +10,8 @@ std::vector<color4> colors;
 
 #include <filesystem>
 
-
+mat4 model_view;
+bool isRotating = false;
 
 
 // Array of rotation angles (in degrees) for each coordinate axis
@@ -85,10 +86,20 @@ void display(void)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Generate the model-view matrix
-    mat4 model_view = Translate(0.0, 0.0, 0.0) *
-        RotateX(Theta[Xaxis]) *
-        RotateY(Theta[Yaxis]) *
-        RotateZ(Theta[Zaxis]);
+    model_view = Translate(0.0, 0.0, 0.0);
+    if (isRotating)
+    {
+        Theta[Axis] += 0.1;
+
+        if (Theta[Axis] > 360.0) {
+            Theta[Axis] -= 360.0;
+        }
+        model_view = model_view *
+            RotateX(Theta[Xaxis]) *
+            RotateY(Theta[Yaxis]) *
+            RotateZ(Theta[Zaxis]);
+    }
+
 
     glUniformMatrix4fv(ModelView, 1, GL_TRUE, model_view);
 
@@ -109,22 +120,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (action == GLFW_PRESS) {
-        switch (button) {
-        case GLFW_MOUSE_BUTTON_RIGHT:    Axis = Xaxis;  break;
-        case GLFW_MOUSE_BUTTON_MIDDLE:  Axis = Yaxis;  break;
-        case GLFW_MOUSE_BUTTON_LEFT:   Axis = Zaxis;  break;
+    if (action == GLFW_RELEASE) {
+        // stop rotating
+        isRotating = false;
+    }
+    else if (action == GLFW_PRESS) {
+        if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+            std::cout << "in callback" << std::endl;
+            // rotate the cube in one axis firstly
+            isRotating = true;
         }
     }
-}
 
-void update(void)
-{
-    Theta[Axis] += 4.0;
-
-    if (Theta[Axis] > 360.0) {
-        Theta[Axis] -= 360.0;
-    }
 }
 
 //---------------------------------------------------------------------
@@ -144,7 +151,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(512, 512, "Spin Cube", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(512, 512, "Rubik's Cube", NULL, NULL);
     
 
     if (!window)
@@ -166,15 +173,10 @@ int main()
 
     init();
 
-    double frameRate = 120, currentTime, previousTime = 0.0;
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-        currentTime = glfwGetTime();
-        if (currentTime - previousTime >= 1 / frameRate) {
-            previousTime = currentTime;
-            update();
-        }
+        
 
         display();
         glfwSwapBuffers(window);
