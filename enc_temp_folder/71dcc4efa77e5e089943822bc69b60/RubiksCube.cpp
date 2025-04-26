@@ -45,6 +45,13 @@ void RubiksCube::initialize()
 
 
 
+void RubiksCube::rotate(float rotationAngle)
+{
+
+}
+
+
+
 
 vec4 RubiksCube::getColor(int axis, int direction) {
     // Standard Rubik's cube colors:
