@@ -12,7 +12,8 @@ class RubiksCube {
 public:
     std::vector<vec4> points;
     std::vector<vec4> colors;
-    std::vector<SubCube> subCubes; 
+    std::vector<vec3> normals;
+    std::vector<SubCube> subCubes;
 
     RubiksCube();
     void initialize();

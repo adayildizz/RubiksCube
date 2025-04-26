@@ -1,14 +1,13 @@
-﻿#include "RubiksCube.h"
+#include "RubiksCube.h"
 #include "SubCube.h"
 #include <vector>
-
 
 // RGBA colors
 
 RubiksCube::RubiksCube() {
     initialize();
-
 }
+
 void RubiksCube::initialize()
 {
     std::vector<vec4> face_colors;
@@ -22,29 +21,41 @@ void RubiksCube::initialize()
                 face_colors.clear();
 
                 // X axis: LEFT and RIGHT faces
-                face_colors.push_back((x == -1) ? getColor(0, -1) : vec4(0, 0, 0, 1)); // here
-                face_colors.push_back((x == 1) ? getColor(0, 1) : vec4(0, 0, 0, 1));
+                face_colors.push_back((x == -1) ? getColor(0, -1) : vec4(0, 0, 0, 1));
+                face_colors.push_back((x == 1)  ? getColor(0, 1)  : vec4(0, 0, 0, 1));
 
                 // Y axis: BOTTOM and TOP faces
                 face_colors.push_back((y == -1) ? getColor(1, -1) : vec4(0, 0, 0, 1));
-                face_colors.push_back((y == 1) ? getColor(1, 1) : vec4(0, 0, 0, 1));
+                face_colors.push_back((y == 1)  ? getColor(1, 1)  : vec4(0, 0, 0, 1));
 
                 // Z axis: BACK and FRONT faces
                 face_colors.push_back((z == -1) ? getColor(2, -1) : vec4(0, 0, 0, 1));
-                face_colors.push_back((z == 1) ? getColor(2, 1) : vec4(0, 0, 0, 1)); // here 
+                face_colors.push_back((z == 1)  ? getColor(2, 1)  : vec4(0, 0, 0, 1));
 
                 SubCube cube(x + y + z + 4, center, face_colors);
                 subCubes.push_back(cube);
 
                 points.insert(points.end(), cube.points.begin(), cube.points.end());
-                colors.insert(colors.end(), cube.colors.begin(), cube.colors.end()); 
+                colors.insert(colors.end(), cube.colors.begin(), cube.colors.end());
+
+                // generated normals for each vertex
+                for (size_t i = 0; i < cube.points.size(); i += 6) {
+                    vec3 p0 = vec3(cube.points[i].x, cube.points[i].y, cube.points[i].z);
+                    vec3 p1 = vec3(cube.points[i+1].x, cube.points[i+1].y, cube.points[i+1].z);
+                    vec3 p2 = vec3(cube.points[i+2].x, cube.points[i+2].y, cube.points[i+2].z);
+
+                    vec3 u = p1 - p0;
+                    vec3 v = p2 - p0;
+                    vec3 normal = normalize(cross(u, v));
+
+                    for (int j = 0; j < 6; ++j) {
+                        normals.push_back(normal);
+                    }
+                }
             }
         }
     }
 }
-
-
-
 
 vec4 RubiksCube::getColor(int axis, int direction) {
     // Standard Rubik's cube colors:

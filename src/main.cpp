@@ -33,7 +33,7 @@ void init()
     // Load shaders and use the resulting shader program
     std::filesystem::path shaderDir = std::filesystem::path(__FILE__).parent_path() / "../shaders";
     GLuint program = InitShader((shaderDir / "vshader.glsl").string().c_str(),
-        (shaderDir / "fshader.glsl").string().c_str());
+                                (shaderDir / "fshader.glsl").string().c_str());
     glUseProgram(program);
 
     // Create the Rubik's Cube
@@ -44,21 +44,25 @@ void init()
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    // Create and initialize buffers
+    // Create and initialize a buffer object
     GLuint buffer;
     glGenBuffers(1, &buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
 
     // Calculate buffer sizes
-    GLsizeiptr pointsSize = cube.points.size() * sizeof(vec4);
-    GLsizeiptr colorsSize = cube.colors.size() * sizeof(vec4);
+    GLsizeiptr pointsSize  = cube.points.size()  * sizeof(vec4);
+    GLsizeiptr colorsSize  = cube.colors.size()  * sizeof(vec4);
+    GLsizeiptr normalsSize = cube.normals.size() * sizeof(vec3);
 
-    // Allocate and fill buffer
-    glBufferData(GL_ARRAY_BUFFER, pointsSize + colorsSize, NULL, GL_STATIC_DRAW);
+    // Allocate total buffer space
+    glBufferData(GL_ARRAY_BUFFER, pointsSize + colorsSize + normalsSize, NULL, GL_STATIC_DRAW);
+
+    // Fill buffer
     glBufferSubData(GL_ARRAY_BUFFER, 0, pointsSize, cube.points.data());
     glBufferSubData(GL_ARRAY_BUFFER, pointsSize, colorsSize, cube.colors.data());
+    glBufferSubData(GL_ARRAY_BUFFER, pointsSize + colorsSize, normalsSize, cube.normals.data());
 
-    // Set up vertex attributes
+    // Set up vertex attribute pointers
     GLuint vPosition = glGetAttribLocation(program, "vPosition");
     glEnableVertexAttribArray(vPosition);
     glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
@@ -67,17 +71,39 @@ void init()
     glEnableVertexAttribArray(vColor);
     glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(pointsSize));
 
-    // Get uniform locations
-    ModelView = glGetUniformLocation(program, "ModelView");
-    Projection = glGetUniformLocation(program, "Projection");
+    GLuint vNormal = glGetAttribLocation(program, "vNormal");
+    glEnableVertexAttribArray(vNormal);
+    glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(pointsSize + colorsSize));
 
-    // Set projection matrix - make it wider to see the whole cube
+    // Set up projection matrix (orthographic)
     mat4 projection = Ortho(-4.0, 4.0, -4.0, 4.0, -4.0, 4.0);
+    Projection = glGetUniformLocation(program, "Projection");
     glUniformMatrix4fv(Projection, 1, GL_TRUE, projection);
 
+    // Lighting uniforms
+    vec3 lightColor(1.0f, 1.0f, 1.0f);
+    float ambientStrength = 0.3f;
+    vec3 lightDirection(0.0f, -1.0f, -1.0f);
+    float diffuseIntensity = 0.7f;
+
+    GLint ambientColorLoc = glGetUniformLocation(program, "directionalLight.color");
+    GLint ambientIntensityLoc = glGetUniformLocation(program, "directionalLight.ambientIntensity");
+    GLint lightDirectionLoc = glGetUniformLocation(program, "directionalLight.direction");
+    GLint diffuseIntensityLoc = glGetUniformLocation(program, "directionalLight.diffuseIntensity");
+
+    glUniform3fv(ambientColorLoc, 1, &lightColor[0]);
+    glUniform1f(ambientIntensityLoc, ambientStrength);
+    glUniform3fv(lightDirectionLoc, 1, &lightDirection[0]);
+    glUniform1f(diffuseIntensityLoc, diffuseIntensity);
+
+    // Get model-view uniform location
+    ModelView = glGetUniformLocation(program, "ModelView");
+
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.1, 0.1, 0.1, 1.0); // Dark background for better contrast
+    glClearColor(0.1, 0.1, 0.1, 1.0); // Dark background
 }
+
+
 //---------------------------------------------------------------------
 //
 // display
@@ -112,8 +138,8 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
         float dy = (ypos - lastY);
 
         // Apply rotation to both axes simultaneously
-        Theta[Yaxis] += rotationSensitivity * dx; 
-        Theta[Xaxis] += rotationSensitivity * dy;  
+        Theta[Yaxis] += rotationSensitivity * dx;
+        Theta[Xaxis] += rotationSensitivity * dy;
 
         
 
@@ -180,13 +206,13 @@ int main()
     }
 
     glfwMakeContextCurrent(window);
-
+/*
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
         std::cerr << "GLEW initialization failed!" << std::endl;
         exit(EXIT_FAILURE);
     }
-
+*/
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
 
@@ -195,7 +221,7 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-        
+         
 
         display();
         glfwSwapBuffers(window);
@@ -205,7 +231,3 @@ int main()
     glfwTerminate();
     exit(EXIT_SUCCESS);
 }
-
-
-
-
