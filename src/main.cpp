@@ -10,6 +10,9 @@ std::vector<color4> colors;
 
 #include <filesystem>
 
+// Create the Rubik's Cube
+RubiksCube cube;
+
 mat4 model_view;
 bool isRotating = false;
 float lastX = 0.0f;
@@ -36,8 +39,7 @@ void init()
                                 (shaderDir / "fshader.glsl").string().c_str());
     glUseProgram(program);
 
-    // Create the Rubik's Cube
-    RubiksCube cube;
+   
 
     // Create a vertex array object
     GLuint vao;
@@ -121,10 +123,18 @@ void display(void)
         RotateY(Theta[Yaxis]) *
         RotateZ(Theta[Zaxis]);
 
-    glUniformMatrix4fv(ModelView, 1, GL_TRUE, model_view);
+    for (int i = 0; i < cube.subCubes.size(); ++i)
+    {
+        // Per-subcube model matrix (translation, face rotation, etc.)
+        mat4 finalModelView = model_view * cube.subCubes[i].modelMatrix;
 
-    // Draw ALL cubes (36 vertices per cube × 27 cubes)
-    glDrawArrays(GL_TRIANGLES, 0, 36 * 27);
+        glUniformMatrix4fv(ModelView, 1, GL_TRUE, finalModelView);
+
+        // Draw this subcube: 36 vertices, offset by 36 * i
+        glDrawArrays(GL_TRIANGLES, 36 * i, 36);
+    }
+
+    
 
     glFlush();
 }
@@ -174,6 +184,11 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             std::cout << "in callback" << std::endl;
             // rotate the cube in one axis firstly
             isRotating = true;
+        }
+        if (button == GLFW_MOUSE_BUTTON_LEFT)
+        {
+            std::cout << "ssssssssss" << std::endl;
+            cube.rotateFace(0, 45);
         }
     }
 

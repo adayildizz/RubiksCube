@@ -2,7 +2,7 @@
 #define RUBIKS_CUBE
 
 #include <vector>
-#include <map>
+#include <array>
 #include "Angel.h"
 #include "SubCube.h"
 
@@ -15,29 +15,37 @@ public:
     std::vector<vec4> colors;
     std::vector<vec3> normals;
     std::vector<SubCube> subCubes;
-    enum FACE_COLOR {
-        RED,
-        ORANGE,
-        WHITE,
-        YELLOW,
-        GREEN,
-        BLUE
-    };
-
-    struct FaceData
-    {
-        int faceID;
-        vec4 center;
+    struct FaceData {
         std::vector<int> subCubeIDs;
-        vec4 face_color;
+        vec3 normal;
+        vec4 color;
     };
 
-    std::map<FACE_COLOR, FaceData> faces;
+    std::array<FaceData, 6> faces;
+
+    // Predefined face normals
+    const std::array<vec3, 6> FACE_NORMALS = {
+        vec3(1, 0, 0),    // RED (Right)
+        vec3(-1, 0, 0),   // ORANGE (Left)
+        vec3(0, 1, 0),    // WHITE (Up)
+        vec3(0, -1, 0),   // YELLOW (Down)
+        vec3(0, 0, 1),    // GREEN (Front)
+        vec3(0, 0, -1)    // BLUE (Back)
+    };
+
+    const std::array<vec4, 6> FACE_COLORS = {
+        vec4(1, 0, 0, 1),    // Right - Red
+        vec4(1, 0.5f, 0, 1), // Left - Orange
+        vec4(1, 1, 1, 1),    // Up - White
+        vec4(1, 1, 0, 1),    // Down - Yellow
+        vec4(0, 1, 0, 1),    // Front - Green
+        vec4(0, 0, 1, 1)     // Back - Blue
+    };
 
 
     RubiksCube();
     void initialize();
-    void rotateFace(FACE_COLOR faceColor, float rotationAngle);
+    void rotateFace(int faceID, float rotationAngle);
     vec4 getColor(int axis, int direction);
     void updateCubeData();
     
