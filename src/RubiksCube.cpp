@@ -17,22 +17,64 @@ void RubiksCube::initialize()
         for (int y = -1; y < 2; y++) {
             for (int z = -1; z < 2; z++) {
 
+                int subcubeID = x + y + z + 4;
                 vec4 center((float)x, (float)y, (float)z, 1.0f);
                 face_colors.clear();
 
                 // X axis: LEFT and RIGHT faces
-                face_colors.push_back((x == -1) ? getColor(0, -1) : vec4(0, 0, 0, 1));
-                face_colors.push_back((x == 1)  ? getColor(0, 1)  : vec4(0, 0, 0, 1));
+                if (x == -1)
+                {
+                    face_colors.push_back(getColor(0, -1));
+                    faceCodes[FACE::ORANGE].push_back(subcubeID);
+                } 
+                else {
+                    face_colors.push_back(vec4(0, 0, 0, 1));
+                }
+                if (x == 1)
+                {
+                    face_colors.push_back(getColor(0, 1));
+                    faceCodes[FACE::RED].push_back(subcubeID);
+                }
+                else {
+                    face_colors.push_back(vec4(0, 0, 0, 1));
+                }
+                if (y == -1)
+                {
+                    face_colors.push_back(getColor(1, -1));
+                    faceCodes[FACE::YELLOW].push_back(subcubeID);
+                }
+                else {
+                    face_colors.push_back(vec4(0, 0, 0, 1));
+                }
+                if (y == 1)
+                {
+                    face_colors.push_back(getColor(1, 1));
+                    faceCodes[FACE::WHITE].push_back(subcubeID);
+                }
+                else {
+                    face_colors.push_back(vec4(0, 0, 0, 1));
+                }
 
-                // Y axis: BOTTOM and TOP faces
-                face_colors.push_back((y == -1) ? getColor(1, -1) : vec4(0, 0, 0, 1));
-                face_colors.push_back((y == 1)  ? getColor(1, 1)  : vec4(0, 0, 0, 1));
+                if (z == -1)
+                {
+                    face_colors.push_back(getColor(2, -1));
+                    faceCodes[FACE::BLUE].push_back(subcubeID);
+                }
+                else {
+                    face_colors.push_back(vec4(0, 0, 0, 1));
+                }
+                if (z == 1)
+                {
+                    face_colors.push_back(getColor(2, 1));
+                    faceCodes[FACE::GREEN].push_back(subcubeID);
+                }
+                else {
+                    face_colors.push_back(vec4(0, 0, 0, 1));
+                }
+                
 
-                // Z axis: BACK and FRONT faces
-                face_colors.push_back((z == -1) ? getColor(2, -1) : vec4(0, 0, 0, 1));
-                face_colors.push_back((z == 1)  ? getColor(2, 1)  : vec4(0, 0, 0, 1));
 
-                SubCube cube(x + y + z + 4, center, face_colors);
+                SubCube cube(subcubeID, center, face_colors);
                 subCubes.push_back(cube);
 
                 points.insert(points.end(), cube.points.begin(), cube.points.end());
@@ -83,4 +125,14 @@ vec4 RubiksCube::getColor(int axis, int direction) {
     else { // Z axis: Front/Back
         return direction > 0 ? colors[4] : colors[5];
     }
+}
+
+void RubiksCube::rotateFace(int faceID, float rotationAngle)
+{
+    // around which point? -> center of the face
+
+    // in which direction? calculate general rotation matrix according to the normal of the face
+
+    // how much -> rotation angle is given
+
 }

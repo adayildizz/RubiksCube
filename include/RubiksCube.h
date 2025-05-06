@@ -2,6 +2,7 @@
 #define RUBIKS_CUBE
 
 #include <vector>
+#include <map>
 #include "Angel.h"
 #include "SubCube.h"
 
@@ -14,11 +15,23 @@ public:
     std::vector<vec4> colors;
     std::vector<vec3> normals;
     std::vector<SubCube> subCubes;
+    enum FACE {
+        RED,
+        ORANGE,
+        WHITE,
+        YELLOW,
+        GREEN,
+        BLUE
+    };
+
+    std::map<FACE, std::vector<int>> faceCodes;
+
 
     RubiksCube();
     void initialize();
-    void rotate(float rotationAngle);
+    void rotateFace(int faceID, float rotationAngle);
     vec4 getColor(int axis, int direction);
+    
 };
 
 #endif
