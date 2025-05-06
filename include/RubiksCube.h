@@ -15,7 +15,7 @@ public:
     std::vector<vec4> colors;
     std::vector<vec3> normals;
     std::vector<SubCube> subCubes;
-    enum FACE {
+    enum FACE_COLOR {
         RED,
         ORANGE,
         WHITE,
@@ -24,13 +24,22 @@ public:
         BLUE
     };
 
-    std::map<FACE, std::vector<int>> faceCodes;
+    struct FaceData
+    {
+        int faceID;
+        vec4 center;
+        std::vector<int> subCubeIDs;
+        vec4 face_color;
+    };
+
+    std::map<FACE_COLOR, FaceData> faces;
 
 
     RubiksCube();
     void initialize();
-    void rotateFace(int faceID, float rotationAngle);
+    void rotateFace(FACE_COLOR faceColor, float rotationAngle);
     vec4 getColor(int axis, int direction);
+    void updateCubeData();
     
 };
 
