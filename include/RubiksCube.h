@@ -47,7 +47,7 @@ public:
     void initialize();
     void rotateFace(int faceID, float rotationAngle);
     vec4 getColor(int axis, int direction);
-    void updateCubeData();
+    void updateFacesData();
     
 };
 

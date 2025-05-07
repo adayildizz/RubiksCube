@@ -2,6 +2,8 @@
 //  Display a rotating cube
 //
 
+int count = 0;
+
 #include "Angel.h"
 #include "RubiksCube.h"
 
@@ -188,7 +190,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         if (button == GLFW_MOUSE_BUTTON_LEFT)
         {
             std::cout << "ssssssssss" << std::endl;
-            cube.rotateFace(0, 45);
+            count += 1;
+            cube.rotateFace(count, 90);
         }
     }
 

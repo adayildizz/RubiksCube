@@ -147,15 +147,58 @@ mat4 Rotate(float angle, const vec3& axis) {
     return rotationMatrix;
 }
 
+float componentAlongAxis(vec4 v, vec3 axis) {
+    if (axis.x != 0.0f) return v.x;
+    if (axis.y != 0.0f) return v.y;
+    return v.z;
+}
+
 void RubiksCube::rotateFace(int faceID, float rotationAngle)
 {
-    FaceData face = faces[faceID];
-    mat4 rotationMatrix;
-    for (int i = 0; i < 9; i++)
-    {
-        std::cout << face.subCubeIDs[i] << std::endl;
-        rotationMatrix = Rotate(rotationAngle, face.normal);
-        std::cout << rotationMatrix << std::endl;
-        subCubes[face.subCubeIDs[i]].rotate(rotationMatrix);
-    };
+    FaceData& face = faces[faceID];
+    mat4 rotationMatrix = Rotate(rotationAngle, face.normal);
+
+    std::vector<int> subCubesToRotate;
+
+    for (int i = 0; i < subCubes.size(); ++i) {
+        vec4 transformedCenter = subCubes[i].modelMatrix * subCubes[i].center;
+        float axisComponent = componentAlongAxis(transformedCenter, face.normal);
+
+        // This selects cubes with center coordinate ? 1.0 along the axis of the face
+        if (abs(axisComponent - 1.0f) < 0.1f) {
+            subCubesToRotate.push_back(i);
+        }
+    }
+
+    for (int i : subCubesToRotate) {
+        subCubes[i].rotate(rotationMatrix);
+    }
+
+    updateFacesData();
+}
+
+
+void RubiksCube::updateFacesData()
+{
+    
+    for (int f = 0; f < 6; ++f) {
+        faces[f].subCubeIDs.clear();
+    }
+
+    for (int i = 0; i < subCubes.size(); ++i) {
+        
+        vec4 transformedCenter = subCubes[i].modelMatrix * subCubes[i].center;
+
+        for (int f = 0; f < 6; ++f) {
+            vec3 normal = faces[f].normal;
+
+            // Project center onto normal
+            float d = dot(transformedCenter, normal);
+
+            // Check if it's "close" to +1 or -1 (we allow some tolerance due to float error)
+            if (abs(d - 1.0f) < 0.1f) {
+                faces[f].subCubeIDs.push_back(i);
+            }
+        }
+    }
 }
