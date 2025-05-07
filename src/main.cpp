@@ -190,7 +190,11 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         if (button == GLFW_MOUSE_BUTTON_LEFT)
         {
             std::cout << "ssssssssss" << std::endl;
+            //dummy trial
             count += 1;
+            if (count > 6) {
+                count = 0;
+            }
             cube.rotateFace(count, 90);
         }
     }
