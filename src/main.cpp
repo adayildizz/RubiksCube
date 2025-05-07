@@ -229,11 +229,11 @@ int main()
 
     glfwMakeContextCurrent(window);
 
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) {
-        std::cerr << "GLEW initialization failed!" << std::endl;
-        exit(EXIT_FAILURE);
-    }
+    //glewExperimental = GL_TRUE;
+    //if (glewInit() != GLEW_OK) {
+    //    std::cerr << "GLEW initialization failed!" << std::endl;
+    //    exit(EXIT_FAILURE);
+    //}
 
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
