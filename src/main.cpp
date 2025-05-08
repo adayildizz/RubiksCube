@@ -2,14 +2,18 @@
 //  Display a rotating cube
 //
 
+int count = 0;
+
 #include "Angel.h"
 #include "RubiksCube.h"
-#include "light.h"
 
 std::vector<point4> points;
 std::vector<color4> colors;
 
 #include <filesystem>
+
+// Create the Rubik's Cube
+RubiksCube cube;
 
 mat4 model_view;
 bool isRotating = false;
@@ -19,22 +23,13 @@ float rotationSensitivity = 1.0f;
 
 // Array of rotation angles (in degrees) for each coordinate axis
 enum { Xaxis = 0, Yaxis = 1, Zaxis = 2, NumAxes = 3 };
-int      Axis = Xaxis;
-GLfloat  Theta[NumAxes] = { 0.0, 0.0, 0.0 };
+int     Axis = Xaxis;
+GLfloat Theta[NumAxes] = { 0.0, 0.0, 0.0 };
 
 // Model-view and projection matrices uniform location
-GLuint  ModelView, Projection;
-
-//Light global variables
-Light mainLight;
-GLint ambientColorLoc;
-GLint ambientIntensityLoc;
-GLint lightDirectionLoc;
-GLint diffuseIntensityLoc;
+GLuint ModelView, Projection;
 
 //----------------------------------------------------------------------------
-
-
 
 void init()
 {
@@ -43,9 +38,6 @@ void init()
     GLuint program = InitShader((shaderDir / "vshader.glsl").string().c_str(),
                                 (shaderDir / "fshader.glsl").string().c_str());
     glUseProgram(program);
-
-    // Create the Rubik's Cube
-    RubiksCube cube;
 
     // Create a vertex array object
     GLuint vao;
@@ -88,13 +80,21 @@ void init()
     Projection = glGetUniformLocation(program, "Projection");
     glUniformMatrix4fv(Projection, 1, GL_TRUE, projection);
 
-    //set up lighting
-    ambientColorLoc = glGetUniformLocation(program, "directionalLight.color");
-    ambientIntensityLoc = glGetUniformLocation(program, "directionalLight.ambientIntensity");
-    lightDirectionLoc = glGetUniformLocation(program, "directionalLight.direction");
-    diffuseIntensityLoc = glGetUniformLocation(program, "directionalLight.diffuseIntensity");
+    // Lighting uniforms
+    vec3 lightColor(1.0f, 1.0f, 1.0f);
+    float ambientStrength = 0.3f;
+    vec3 lightDirection(0.0f, 1.0f, 0.0f);
+    float diffuseIntensity = 0.7f;
 
-    mainLight.UseLight(ambientIntensityLoc, ambientColorLoc, diffuseIntensityLoc, lightDirectionLoc);
+    GLint ambientColorLoc = glGetUniformLocation(program, "directionalLight.color");
+    GLint ambientIntensityLoc = glGetUniformLocation(program, "directionalLight.ambientIntensity");
+    GLint lightDirectionLoc = glGetUniformLocation(program, "directionalLight.direction");
+    GLint diffuseIntensityLoc = glGetUniformLocation(program, "directionalLight.diffuseIntensity");
+
+    glUniform3fv(ambientColorLoc, 1, &lightColor[0]);
+    glUniform1f(ambientIntensityLoc, ambientStrength);
+    glUniform3fv(lightDirectionLoc, 1, &lightDirection[0]);
+    glUniform1f(diffuseIntensityLoc, diffuseIntensity);
 
     // Get model-view uniform location
     ModelView = glGetUniformLocation(program, "ModelView");
@@ -102,7 +102,6 @@ void init()
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.1, 0.1, 0.1, 1.0); // Dark background
 }
-
 
 //---------------------------------------------------------------------
 //
@@ -115,16 +114,22 @@ void display(void)
 
     // Generate the model-view matrix
     model_view = Translate(0.0, 0.0, 0.0);
-  
+
     model_view = model_view *
-        RotateX(Theta[Xaxis]) *
-        RotateY(Theta[Yaxis]) *
-        RotateZ(Theta[Zaxis]);
+                 RotateX(Theta[Xaxis]) *
+                 RotateY(Theta[Yaxis]) *
+                 RotateZ(Theta[Zaxis]);
 
-    glUniformMatrix4fv(ModelView, 1, GL_TRUE, model_view);
+    for (int i = 0; i < cube.subCubes.size(); ++i)
+    {
+        // Per-subcube model matrix (translation, face rotation, etc.)
+        mat4 finalModelView = model_view * cube.subCubes[i].modelMatrix;
 
-    // Draw ALL cubes (36 vertices per cube × 27 cubes)
-    glDrawArrays(GL_TRIANGLES, 0, 36 * 27);
+        glUniformMatrix4fv(ModelView, 1, GL_TRUE, finalModelView);
+
+        // Draw this subcube: 36 vertices, offset by 36 * i
+        glDrawArrays(GL_TRIANGLES, 36 * i, 36);
+    }
 
     glFlush();
 }
@@ -141,9 +146,6 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
         Theta[Yaxis] += rotationSensitivity * dx;
         Theta[Xaxis] += rotationSensitivity * dy;
 
-        
-
-       
         if (Theta[Yaxis] > 360.0) {
             Theta[Yaxis] -= 360.0;
         }
@@ -158,25 +160,55 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
     // Update last position
     lastX = xpos;
     lastY = ypos;
-    
-
-
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
     if (action == GLFW_RELEASE) {
-        // stop rotating
+        // stop rotating the whole cube
         isRotating = false;
     }
     else if (action == GLFW_PRESS) {
         if (button == GLFW_MOUSE_BUTTON_RIGHT) {
             std::cout << "in callback" << std::endl;
-            // rotate the cube in one axis firstly
+            // rotate the whole cube
             isRotating = true;
         }
-    }
+        if (button == GLFW_MOUSE_BUTTON_LEFT)
+        {
+            std::cout << "Initiating face rotation animation" << std::endl;
 
+            // Check if a face is already animating
+            if (!cube.isFaceAnimating) {
+                // Determine which face to rotate and the target angle (e.g., 90 degrees)
+                cube.animatingFaceID = count;
+                cube.targetAnimationAngle = 90.0f;
+
+                cube.subCubesToAnimate.clear();
+                RubiksCube::FaceData& face = cube.faces[cube.animatingFaceID];
+
+                for (int i = 0; i < cube.subCubes.size(); ++i) {
+                    vec4 transformedCenter = cube.subCubes[i].modelMatrix * cube.subCubes[i].center;
+                    float axisComponent = componentAlongAxis(transformedCenter, face.normal);
+
+                    if (abs(axisComponent - 1.0f) < 0.1f) {
+                        cube.subCubesToAnimate.push_back(i);
+                    }
+                }
+
+                cube.currentAnimationAngle = 0.0f;
+                cube.isFaceAnimating = true;
+
+                count += 1;
+                if (count > 5) {
+                    count = 0;
+                }
+            }
+            else {
+                std::cout << "A face is already animating. Ignoring click." << std::endl;
+            }
+        }
+    }
 }
 
 //---------------------------------------------------------------------
@@ -186,7 +218,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 int main()
 {
-   
     if (!glfwInit())
         exit(EXIT_FAILURE);
 
@@ -197,7 +228,6 @@ int main()
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
     GLFWwindow* window = glfwCreateWindow(512, 512, "Rubik's Cube", NULL, NULL);
-    
 
     if (!window)
     {
@@ -206,13 +236,13 @@ int main()
     }
 
     glfwMakeContextCurrent(window);
-/*
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) {
-        std::cerr << "GLEW initialization failed!" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-*/
+
+    //glewExperimental = GL_TRUE;
+    //if (glewInit() != GLEW_OK) {
+    //    std::cerr << "GLEW initialization failed!" << std::endl;
+    //    exit(EXIT_FAILURE);
+    //}
+
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
 
@@ -221,8 +251,10 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-         
 
+        // Update the face rotation animation
+        cube.updateAnimation();
+  
         display();
         glfwSwapBuffers(window);
     }
