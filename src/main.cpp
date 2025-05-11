@@ -170,13 +170,13 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     }
     else if (action == GLFW_PRESS) {
         if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-            std::cout << "in callback" << std::endl;
+            //std::cout << "in callback" << std::endl;
             // rotate the whole cube
             isRotating = true;
         }
         if (button == GLFW_MOUSE_BUTTON_LEFT)
         {
-            std::cout << "Initiating face rotation animation" << std::endl;
+            //std::cout << "Initiating face rotation animation" << std::endl;
 
             // Check if a face is already animating
             if (!cube.isFaceAnimating) {
@@ -211,6 +211,20 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     }
 }
 
+//KEY CALLBACK FOR INFORMATION PAGE
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (action != GLFW_PRESS) return;
+    switch (key) {
+    case GLFW_KEY_ESCAPE: case GLFW_KEY_Q:
+        exit(EXIT_SUCCESS);
+        break;
+    case GLFW_KEY_H:
+        std::cout << "\nCONTROLS OF THE APPLICATION\n\nH -- help.\nQ -- quit(exit) the program.\nMouse Right Click -- To move the Rubik's Cube. \nMouse Left Click -- To manipulate the Rubik's Cube." << std::endl;
+        break;
+    }
+}
+
 //---------------------------------------------------------------------
 //
 // main
@@ -218,6 +232,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 int main()
 {
+    std::cout << "For help press H button." << std::endl;
     if (!glfwInit())
         exit(EXIT_FAILURE);
 
@@ -228,7 +243,7 @@ int main()
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
     GLFWwindow* window = glfwCreateWindow(512, 512, "Rubik's Cube", NULL, NULL);
-
+    
     if (!window)
     {
         glfwTerminate();
@@ -245,6 +260,7 @@ int main()
 
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetKeyCallback(window, key_callback);
 
     init();
 
@@ -254,7 +270,7 @@ int main()
 
         // Update the face rotation animation
         cube.updateAnimation();
-  
+      
         display();
         glfwSwapBuffers(window);
     }
