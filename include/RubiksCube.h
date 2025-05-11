@@ -23,7 +23,7 @@ public:
     int animatingFaceID = -1;
     float currentAnimationAngle = 0.0f;
     float targetAnimationAngle = 0.0f;
-    float animationSpeed = 5.0f; // Degrees per frame (adjust for desired speed)
+    float animationSpeed = 2.0f;
     std::vector<int> subCubesToAnimate;
     void updateAnimation();
 
