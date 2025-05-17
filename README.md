@@ -1,6 +1,6 @@
-# 🧊 Rubik's Cube - COMP 410/510 Programming Assignment #2
+# 🧊 Rubik's Cube
 
-**Twist and turn your way to victory! This OpenGL application brings the iconic Rubik's Cube to life with interactive manipulation and dynamic rendering.**
+**This OpenGL application brings the iconic Rubik's Cube to life with interactive manipulation and dynamic rendering.**
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT) ![Rubik's Cube Demo](path/to/your/cool_rubiks_cube_demo.gif) ## ✨ Project Overview
 
