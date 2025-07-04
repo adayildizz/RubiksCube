@@ -1,4 +1,4 @@
-//
+﻿//
 //  Display a rotating cube
 //
 
@@ -28,45 +28,162 @@ GLfloat  Theta[NumAxes] = { 0.0, 0.0, 0.0 };
 
 // Model-view and projection matrices uniform location
 GLuint  ModelView, Projection;
+GLuint program;
+GLuint vao;
+GLuint buffer;
 
+
+// for picking 
+GLuint pickingProgram;
+GLuint pickingFBO, pickingDepth, pickingTexture;
+GLuint pickingVAO;
+int pickedID;
+int faceID;
+// 
 //----------------------------------------------------------------------------
 
+void createPickingFBO() {
+ 
+    const int width = 512;
+    const int height = 512;
 
+    glGenFramebuffers(1, &pickingFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, pickingFBO);
+
+    glGenTextures(1, &pickingTexture);
+    glBindTexture(GL_TEXTURE_2D, pickingTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+        0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+        GL_TEXTURE_2D, pickingTexture, 0);
+
+    glGenRenderbuffers(1, &pickingDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, pickingDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+        GL_RENDERBUFFER, pickingDepth);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "Error: Picking framebuffer is not complete." << std::endl;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+
+}
+
+int pickObjectAt(double mouseX, double mouseY, int windowWidth, int windowHeight)
+{
+
+    // Render the scene to the picking framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, pickingFBO);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glUseProgram(pickingProgram);
+    glBindVertexArray(pickingVAO);
+
+
+    GLint modelViewLoc = glGetUniformLocation(pickingProgram, "ModelView");
+    GLint projectionLoc = glGetUniformLocation(pickingProgram, "Projection");
+
+    mat4 projection = Ortho(-4.0, 4.0, -4.0, 4.0, -4.0, 4.0);
+    glUniformMatrix4fv(projectionLoc, 1, GL_TRUE, projection);
+
+    model_view = Translate(0.0, 0.0, 0.0) *
+        RotateX(Theta[Xaxis]) *
+        RotateY(Theta[Yaxis]) *
+        RotateZ(Theta[Zaxis]);
+
+    for (int i = 0; i < cube.subCubes.size(); ++i)
+    {
+        mat4 mv = model_view * cube.subCubes[i].modelMatrix;
+        glUniformMatrix4fv(modelViewLoc, 1, GL_TRUE, mv);
+        glDrawArrays(GL_TRIANGLES, 36 * i, 36);
+    }
+
+    glFlush();
+
+    // Read pixel color from the FBO
+    unsigned char pixel[4];
+    int y_inverted = windowHeight - static_cast<int>(mouseY);  // Invert Y for OpenGL
+
+    glReadPixels(static_cast<int>(mouseX), y_inverted, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &pixel);
+
+    
+
+    // Decode ID from pixel color
+    int id = pixel[0] + (pixel[1] << 8) + (pixel[2] << 16);
+
+    // return to the main program 
+    glUseProgram(program);
+    // bind the default framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindVertexArray(vao);
+
+    return id;
+}
 
 void init()
 {
-    // Load shaders and use the resulting shader program
+    // Load shaders
     std::filesystem::path shaderDir = std::filesystem::path(__FILE__).parent_path() / "../shaders";
-    GLuint program = InitShader((shaderDir / "vshader.glsl").string().c_str(),
-                                (shaderDir / "fshader.glsl").string().c_str());
-    glUseProgram(program);
 
-   
+    pickingProgram = InitShader((shaderDir / "pickingv.glsl").string().c_str(),
+        (shaderDir / "pickingf.glsl").string().c_str());
 
-    // Create a vertex array object
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+    program = InitShader((shaderDir / "vshader.glsl").string().c_str(),
+        (shaderDir / "fshader.glsl").string().c_str());
 
-    // Create and initialize a buffer object
-    GLuint buffer;
+    // Create Picking FBO
+    createPickingFBO();
+
+    // Create buffer and VAOs
+  
     glGenBuffers(1, &buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
 
-    // Calculate buffer sizes
-    GLsizeiptr pointsSize  = cube.points.size()  * sizeof(vec4);
-    GLsizeiptr colorsSize  = cube.colors.size()  * sizeof(vec4);
+    GLsizeiptr pointsSize = cube.points.size() * sizeof(vec4);
+    GLsizeiptr colorsSize = cube.colors.size() * sizeof(vec4);
     GLsizeiptr normalsSize = cube.normals.size() * sizeof(vec3);
+    GLsizeiptr pickingColorsSize = cube.pickingColors.size() * sizeof(vec4);
 
-    // Allocate total buffer space
-    glBufferData(GL_ARRAY_BUFFER, pointsSize + colorsSize + normalsSize, NULL, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+        pointsSize + colorsSize + normalsSize + pickingColorsSize,
+        NULL, GL_STATIC_DRAW);
 
-    // Fill buffer
     glBufferSubData(GL_ARRAY_BUFFER, 0, pointsSize, cube.points.data());
     glBufferSubData(GL_ARRAY_BUFFER, pointsSize, colorsSize, cube.colors.data());
     glBufferSubData(GL_ARRAY_BUFFER, pointsSize + colorsSize, normalsSize, cube.normals.data());
+    glBufferSubData(GL_ARRAY_BUFFER, pointsSize + colorsSize + normalsSize,
+        pickingColorsSize, cube.pickingColors.data());
 
-    // Set up vertex attribute pointers
+    // === Picking VAO ===
+   
+    glGenVertexArrays(1, &pickingVAO);
+    glBindVertexArray(pickingVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+
+    glUseProgram(pickingProgram);
+
+    GLuint vPickPos = glGetAttribLocation(pickingProgram, "vPosition");
+    glEnableVertexAttribArray(vPickPos);
+    glVertexAttribPointer(vPickPos, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+
+    GLuint vPickColor = glGetAttribLocation(pickingProgram, "vPickingColor");
+    glEnableVertexAttribArray(vPickColor);
+    glVertexAttribPointer(vPickColor, 4, GL_FLOAT, GL_FALSE, 0,
+        BUFFER_OFFSET(pointsSize + colorsSize + normalsSize));
+
+    // === Normal Rendering VAO ===
+    
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+
+    glUseProgram(program);
+
     GLuint vPosition = glGetAttribLocation(program, "vPosition");
     glEnableVertexAttribArray(vPosition);
     glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
@@ -77,9 +194,10 @@ void init()
 
     GLuint vNormal = glGetAttribLocation(program, "vNormal");
     glEnableVertexAttribArray(vNormal);
-    glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(pointsSize + colorsSize));
+    glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0,
+        BUFFER_OFFSET(pointsSize + colorsSize));
 
-    // Set up projection matrix (orthographic)
+    // Set projection
     mat4 projection = Ortho(-4.0, 4.0, -4.0, 4.0, -4.0, 4.0);
     Projection = glGetUniformLocation(program, "Projection");
     glUniformMatrix4fv(Projection, 1, GL_TRUE, projection);
@@ -90,22 +208,19 @@ void init()
     vec3 lightDirection(0.0f, 1.0f, 0.0f);
     float diffuseIntensity = 0.7f;
 
-    GLint ambientColorLoc = glGetUniformLocation(program, "directionalLight.color");
-    GLint ambientIntensityLoc = glGetUniformLocation(program, "directionalLight.ambientIntensity");
-    GLint lightDirectionLoc = glGetUniformLocation(program, "directionalLight.direction");
-    GLint diffuseIntensityLoc = glGetUniformLocation(program, "directionalLight.diffuseIntensity");
+    glUniform3fv(glGetUniformLocation(program, "directionalLight.color"), 1, &lightColor[0]);
+    glUniform1f(glGetUniformLocation(program, "directionalLight.ambientIntensity"), ambientStrength);
+    glUniform3fv(glGetUniformLocation(program, "directionalLight.direction"), 1, &lightDirection[0]);
+    glUniform1f(glGetUniformLocation(program, "directionalLight.diffuseIntensity"), diffuseIntensity);
 
-    glUniform3fv(ambientColorLoc, 1, &lightColor[0]);
-    glUniform1f(ambientIntensityLoc, ambientStrength);
-    glUniform3fv(lightDirectionLoc, 1, &lightDirection[0]);
-    glUniform1f(diffuseIntensityLoc, diffuseIntensity);
-
-    // Get model-view uniform location
     ModelView = glGetUniformLocation(program, "ModelView");
 
+    // Final OpenGL states
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.1, 0.1, 0.1, 1.0); // Dark background
+    glClearColor(0.1, 0.1, 0.1, 1.0);
 }
+
+
 
 
 //---------------------------------------------------------------------
@@ -115,6 +230,8 @@ void init()
 
 void display(void)
 {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); // Must be bound to default framebuffer!
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Generate the model-view matrix
@@ -189,16 +306,42 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         }
         if (button == GLFW_MOUSE_BUTTON_LEFT)
         {
-            std::cout << "ssssssssss" << std::endl;
-            //dummy trial
-            count += 1;
-            if (count > 6) {
-                count = 0;
-            }
-            cube.rotateFace(count, 90);
+            
+            double mouseX, mouseY;
+            glfwGetCursorPos(window, &mouseX, &mouseY);
+
+            int width, height;
+            glfwGetFramebufferSize(window, &width, &height);
+
+            pickedID = pickObjectAt(mouseX, mouseY, width, height);
+            std::cout << "Picked ID: " << pickedID << std::endl;
+            faceID = cube.getFaceIDFromSubCube(pickedID);
+            
+            
         }
     }
 
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+
+            
+
+    if (pickedID >= 0 && pickedID < cube.subCubes.size())
+    {
+        if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+            std::cout << "Clicked face: " << faceID << std::endl;
+            cube.rotateFace(faceID, 90.0f);
+
+        }
+        if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+            std::cout << "Clicked face: " << faceID << std::endl;
+            cube.rotateFace(faceID, -90.0f);
+
+        }
+    }
+        
 }
 
 //---------------------------------------------------------------------
@@ -229,14 +372,15 @@ int main()
 
     glfwMakeContextCurrent(window);
 
-    //glewExperimental = GL_TRUE;
-    //if (glewInit() != GLEW_OK) {
-    //    std::cerr << "GLEW initialization failed!" << std::endl;
-    //    exit(EXIT_FAILURE);
-    //}
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK) {
+        std::cerr << "GLEW initialization failed!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetKeyCallback(window, key_callback);
 
     init();
 

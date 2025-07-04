@@ -82,9 +82,9 @@ void RubiksCube::initialize()
                     subcube_face_colors.push_back(vec4(0, 0, 0, 1));
                 }
                 
+                vec4 pickingColor = generatePickingColor(subcubeID);
 
-
-                SubCube cube(subcubeID, center, subcube_face_colors);
+                SubCube cube(subcubeID, center, subcube_face_colors, pickingColor);
                 subCubes.push_back(cube);
 
                 points.insert(points.end(), cube.points.begin(), cube.points.end());
@@ -103,7 +103,12 @@ void RubiksCube::initialize()
                     for (int j = 0; j < 6; ++j) {
                         normals.push_back(normal);
                     }
+                   
                 }
+                for (int j = 0; j < 36; ++j) {
+                    pickingColors.push_back(pickingColor);
+                }
+            
             }
         }
     }
@@ -174,8 +179,9 @@ void RubiksCube::rotateFace(int faceID, float rotationAngle)
         subCubes[i].rotate(rotationMatrix);
     }
 
-    updateFacesData();
+    //updateFacesData();
 }
+
 
 
 void RubiksCube::updateFacesData()
@@ -202,3 +208,44 @@ void RubiksCube::updateFacesData()
         }
     }
 }
+
+
+vec4 RubiksCube::generatePickingColor(int id) {
+    int r = (id & 0x000000FF);
+    int g = (id & 0x0000FF00) >> 8;
+    int b = (id & 0x00FF0000) >> 16;
+
+    return vec4(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
+}
+
+
+int RubiksCube::getFaceIDFromSubCube(int subCubeID) {
+    for (auto& subCube : subCubes) {
+        if (subCube.id == subCubeID) {
+            vec4 worldCenter = subCube.modelMatrix * subCube.center;
+            vec3 dir = normalize(vec3(worldCenter.x, worldCenter.y, worldCenter.z));
+
+            float absX = fabs(dir.x);
+            float absY = fabs(dir.y);
+            float absZ = fabs(dir.z);
+
+            std::cout << "Clicked subcube center (world): " << worldCenter << std::endl;
+            std::cout << "Direction: " << dir << std::endl;
+
+            if (absX >= absY && absX >= absZ) {
+                std::cout << "Dominant axis: X\n";
+                return (dir.x >= 0.0f) ? 0 : 1; // Right : Left
+            }
+            else if (absY >= absX && absY >= absZ) {
+                std::cout << "Dominant axis: Y\n";
+                return (dir.y >= 0.0f) ? 2 : 3; // Up : Down
+            }
+            else {
+                std::cout << "Dominant axis: Z\n";
+                return (dir.z >= 0.0f) ? 4 : 5; // Front : Back
+            }
+        }
+    }
+    return -1;
+}
+

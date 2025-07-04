@@ -17,7 +17,9 @@ public:
     std::vector<vec4> colors;
     mat4 modelMatrix;
 
-    SubCube(int id, vec4 centerCoordinate, std::vector<vec4>& faceColors);
+    vec4 pickingColor;
+
+    SubCube(int id, vec4 centerCoordinate, std::vector<vec4>& faceColors, vec4 pickingColor);
     void quad(int a, int b, int c, int d, vec4& color);
     void rotate(mat4 rotationMatrix);
     void initializeVertices();
