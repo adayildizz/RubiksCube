@@ -300,7 +300,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     }
     else if (action == GLFW_PRESS) {
         if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-            std::cout << "in callback" << std::endl;
+            
             // rotate the cube in one axis firstly
             isRotating = true;
         }
@@ -314,8 +314,9 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             glfwGetFramebufferSize(window, &width, &height);
 
             pickedID = pickObjectAt(mouseX, mouseY, width, height);
-            std::cout << "Picked ID: " << pickedID << std::endl;
             faceID = cube.getFaceIDFromSubCube(pickedID);
+            std::cout << "Clicked face: " << faceID << std::endl;
+            
             
             
         }
@@ -331,15 +332,22 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (pickedID >= 0 && pickedID < cube.subCubes.size())
     {
         if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-            std::cout << "Clicked face: " << faceID << std::endl;
+            
             cube.rotateFace(faceID, 90.0f);
 
         }
         if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-            std::cout << "Clicked face: " << faceID << std::endl;
+           
             cube.rotateFace(faceID, -90.0f);
 
         }
+    }
+
+
+    if (key == GLFW_KEY_H && action == GLFW_PRESS) {
+        std::cout << "Right click + drag to rotate the cube. " << std::endl;
+        std::cout << "Left click to select a face. " << std::endl;
+        std::cout << "key A or key D to rotate the selected face. " << std::endl;
     }
         
 }
@@ -371,12 +379,12 @@ int main()
     }
 
     glfwMakeContextCurrent(window);
-
+    /*
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
         std::cerr << "GLEW initialization failed!" << std::endl;
         exit(EXIT_FAILURE);
-    }
+    }*/
 
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
