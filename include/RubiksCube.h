@@ -9,24 +9,13 @@
 typedef vec4 color4;
 typedef vec4 point4;
 
-// Declare the Rotate function here
-mat4 Rotate(float angle, const vec3& axis);
-
 class RubiksCube {
 public:
     std::vector<vec4> points;
     std::vector<vec4> colors;
     std::vector<vec3> normals;
+    std::vector<vec4> pickingColors;
     std::vector<SubCube> subCubes;
-
-    bool isFaceAnimating = false;
-    int animatingFaceID = -1;
-    float currentAnimationAngle = 0.0f;
-    float targetAnimationAngle = 0.0f;
-    float animationSpeed = 2.0f;
-    std::vector<int> subCubesToAnimate;
-    void updateAnimation();
-
     struct FaceData {
         std::vector<int> subCubeIDs;
         vec3 normal;
@@ -37,13 +26,25 @@ public:
 
     // Predefined face normals
     const std::array<vec3, 6> FACE_NORMALS = {
-        vec3(1, 0, 0),     // RED (Right)
-        vec3(-1, 0, 0),    // ORANGE (Left)
-        vec3(0, 1, 0),     // WHITE (Up)
-        vec3(0, -1, 0),    // YELLOW (Down)
-        vec3(0, 0, 1),     // GREEN (Front)
-        vec3(0, 0, -1)     // BLUE (Back)
+        vec3(1, 0, 0),    // RED (Right)
+        vec3(-1, 0, 0),   // ORANGE (Left)
+        vec3(0, 1, 0),    // WHITE (Up)
+        vec3(0, -1, 0),   // YELLOW (Down)
+        vec3(0, 0, 1),    // GREEN (Front)
+        vec3(0, 0, -1)    // BLUE (Back)
     };
+
+
+    const vec3 FACE_NORMALS_LOCAL[6] = {
+    vec3(1, 0, 0),  // Right
+    vec3(-1, 0, 0), // Left
+    vec3(0, 1, 0),  // Up
+    vec3(0, -1, 0), // Down
+    vec3(0, 0, 1),  // Front
+    vec3(0, 0, -1)  // Back
+    };
+
+
 
     const std::array<vec4, 6> FACE_COLORS = {
         vec4(1, 0, 0, 1),    // Right - Red
@@ -60,10 +61,9 @@ public:
     void rotateFace(int faceID, float rotationAngle);
     vec4 getColor(int axis, int direction);
     void updateFacesData();
-
+    vec4 generatePickingColor(int id);
+    int getFaceIDFromSubCube(int subCubeID);
+    
 };
-
-float componentAlongAxis(vec4 v, vec3 axis);
-
 
 #endif

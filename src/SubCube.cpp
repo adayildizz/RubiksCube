@@ -1,10 +1,10 @@
 #include "SubCube.h"
 #include "RubiksCube.h"
 
-SubCube::SubCube(int id, vec4 centerCoordinate, std::vector<vec4>& faceColors)
+SubCube::SubCube(int id, vec4 centerCoordinate, std::vector<vec4>& faceColors, vec4 pickingColor)
 {
     this->id = id;
-
+    this->pickingColor = pickingColor;
     this->center = centerCoordinate;
 
     points.reserve(36);
