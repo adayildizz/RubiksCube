@@ -169,8 +169,11 @@ void RubiksCube::rotateFace(int faceID, float rotationAngle)
         vec4 transformedCenter = subCubes[i].modelMatrix * subCubes[i].center;
         float axisComponent = componentAlongAxis(transformedCenter, face.normal);
 
-        // This selects cubes with center coordinate ? 1.0 along the axis of the face
-        if (abs(axisComponent - 1.0f) < 0.1f) {
+        // For faces with positive normals (0, 2, 4), check for +1.0
+        // For faces with negative normals (1, 3, 5), check for -1.0
+        float expectedComponent = (faceID % 2 == 0) ? 1.0f : -1.0f;
+        
+        if (abs(axisComponent - expectedComponent) < 0.1f) {
             subCubesToRotate.push_back(i);
         }
     }
