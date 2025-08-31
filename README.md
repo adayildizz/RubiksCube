@@ -3,7 +3,7 @@
 An interactive 3D Rubik’s Cube built with C++ and OpenGL.  
 Rotate faces, scramble the cube, and try solving it with smooth animations and basic lighting.
 
-![Rubik's Cube Demo](assets/rubikscubedemo.gif)
+![Rubik's Cube Demo](./assets/rubikscubedemo.gif)
 
 ---
 
